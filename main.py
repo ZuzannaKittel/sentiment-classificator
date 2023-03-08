@@ -19,6 +19,7 @@ print(data)
 
 # Extraction of the examples (column 7)
 examples = data[data.columns[7]]
+sentiments = data[data.columns[6]]
 print(examples)
 
 # Process text
@@ -71,7 +72,7 @@ def process_text(text):
 
 # Use process_text on the whole data, row by row
 # Ignoring the "nan" and "NaN" records
-def processAllTexts(data):
+def processAllExamples(data):
     counter = 0
     result = {}
     for row in data:
@@ -82,10 +83,32 @@ def processAllTexts(data):
     print(counter)
     return result
 
+def processAllSentiments(data):
+    counter = 0
+    result = {}
+    for row in data:
+        if str(row) != "nan" and str(row) != "NaN":
+            print("nie jest nan")
+            result.update({counter :row})
+            counter = counter + 1
+    print(counter)
+    return result
 
-examples = processAllTexts(examples)
+examples = processAllExamples(examples)
+sentiments = processAllSentiments(sentiments)
 
-print(examples)
+def mergeDictionary(dict_1, dict_2):
+   dict_3 = {**dict_1, **dict_2}
+   for key, value in dict_3.items():
+       if key in dict_1 and key in dict_2:
+               dict_3[key] = [value , dict_1[key]]
+   return dict_3
+
+examples_and_sentiments = mergeDictionary(examples, sentiments)
+print(examples_and_sentiments)
+
+#print(examples)
+#print(sentiments)
 
 """
 # List the tokens including their lemmas and POS tags
