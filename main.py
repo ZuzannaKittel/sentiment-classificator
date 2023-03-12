@@ -1,14 +1,9 @@
-import spacy
-
-import re
-
 import pandas as pd
+import tools
+import gensim
 
-from spacy.tokenizer import Tokenizer
-from spacy.lang.pl import Polish
-nlp = Polish()
-
-pl = spacy.load('pl_core_news_sm', disable = ['parser','ner'])
+from sklearn.feature_extraction.text import TfidfVectorizer
+from gensim.models import Word2Vec, KeyedVectors
 
 # Import database
 data = pd.read_csv('słownik_anotacji_emocjonalnej.csv')
@@ -22,81 +17,15 @@ examples = data[data.columns[7]]
 sentiments = data[data.columns[6]]
 print(examples)
 
-# Process text
-def process_text(text):
 
-    # remove hyperlinks
-    text = re.sub(r'https?:\/\/.*[\r\n]*', '', str(text))
+examples_dict = tools.processDataDict(examples)
+examples_list = tools.processDataList(examples)
+print(examples_list)
 
-    # remove hashtags
-    # only removing the hash # sign from the word
-    text = re.sub(r'#', '', str(text))
+sentiments_dict = tools.processDataDict(sentiments)
+sentiments_list = tools.processDataList(sentiments)
 
-    # remove punctuation
-    text = re.sub(r'[^\w\s]', '', str(text))
-
-    # remove "nan" (so records without examples)
-    # text = re.sub(r'nan', '', str(text))
-
-    # instantiate tokenizer class
-    tokenizer = Tokenizer(pl.vocab)
-
-    # tokenize text
-    text_tokens = tokenizer(text)
-
-    # import the polish stopwords from spacy
-    stopwords = pl.Defaults.stop_words 
-
-    # print(stopwords)
-
-    text_clean = []
-    
-    for word in text_tokens: # go through every word in your tokens list
-        if (word not in stopwords):  # remove stopwords
-            text_clean.append(word)
-            #print(word)
-
-    #print(text_clean)
-
-    texts_lem = ''
-
-    text_clean_string = ''
-    text_clean_string = ''.join(str(text_clean))
-    #print(text_clean_string)
-
-    doc2 = pl(text_clean_string)
-
-    texts_lem = ' '.join([token.lemma_ for token in doc2])
-
-    return texts_lem
-
-# Use process_text on the whole data, row by row
-# Ignoring the "nan" and "NaN" records
-def processAllExamples(data):
-    counter = 0
-    result = {}
-    for row in data:
-        if str(row) != "nan" and str(row) != "NaN":
-            print("nie jest nan")
-            result.update({counter :process_text(row)})
-            counter = counter + 1
-    print(counter)
-    return result
-
-def processAllSentiments(data):
-    counter = 0
-    result = {}
-    for row in data:
-        if str(row) != "nan" and str(row) != "NaN":
-            print("nie jest nan")
-            result.update({counter :row})
-            counter = counter + 1
-    print(counter)
-    return result
-
-examples = processAllExamples(examples)
-sentiments = processAllSentiments(sentiments)
-
+"""
 def mergeDictionary(dict_1, dict_2):
    dict_3 = {**dict_1, **dict_2}
    for key, value in dict_3.items():
@@ -104,11 +33,12 @@ def mergeDictionary(dict_1, dict_2):
                dict_3[key] = [value , dict_1[key]]
    return dict_3
 
-examples_and_sentiments = mergeDictionary(examples, sentiments)
+examples_and_sentiments = mergeDictionary(examples_dict, sentiments_dict)
 print(examples_and_sentiments)
 
-#print(examples)
-#print(sentiments)
+print(examples_dict)
+#print(sentiments_dict)
+"""
 
 """
 # List the tokens including their lemmas and POS tags
@@ -116,3 +46,10 @@ doc = pl("Granice mojego języka oznaczają granice mojego świata") # ~Wittgens
 for token in doc:
     print(token.text, token.lemma_, token.tag_)
 """
+
+# Initialise the TfidfVectorizer
+tfidf = TfidfVectorizer()
+
+# Vectorise the text column of the data
+vectorized_examples = tfidf.fit_transform(examples_list)
+print(vectorized_examples)
