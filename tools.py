@@ -2,8 +2,9 @@ import re
 import spacy
 
 from spacy.tokenizer import Tokenizer
+
 from spacy.lang.pl import Polish
-pl = spacy.load('pl_core_news_sm', disable = ['parser','ner'])
+pl = spacy.load('pl_core_news_sm')
 
 # Process text
 def process_text(text):
@@ -36,13 +37,15 @@ def process_text(text):
         if (word not in stopwords):  # remove stopwords
             text_clean.append(word)
 
+    #print(text_clean)
+
     texts_lem = ''
-    text_clean_string = ''
-    text_clean_string = ''.join(str(text_clean))
 
-    doc2 = pl(text_clean_string)
+    doc = pl(str(text_clean))
 
-    texts_lem = ' '.join([token.lemma_ for token in doc2])
+    texts_lem = ' '.join(token.lemma_ for token in doc)
+
+    #print(texts_lem)
 
     return texts_lem
 
@@ -56,18 +59,56 @@ def processDataDict(data):
         if str(row) != "nan" and str(row) != "NaN":
             result.update({counter :process_text(row)})
             counter = counter + 1
-    print(counter)
     return result
 
 # Use process_text on the whole data, row by row
 # Ignoring the "nan" and "NaN" records
 # Creates a list
 def processDataList(data):
-    counter = 0
     result = []
     for row in data:
         if str(row) != "nan" and str(row) != "NaN":
             result.append(process_text(row))
-            counter = counter + 1
-    print(counter)
     return result
+
+# Use process_text on the whole data, row by row
+# Ignoring the "nan" and "NaN" records
+# Creates a dictionary
+def processSentimentsDict(data):
+    counter = 0
+    result = {}
+    for row in data:
+        if str(row) != "nan" and str(row) != "NaN":
+            if row == '- s' or row == '- m':
+                row = 0
+            if row == '+ s' or row == '+ m':
+                row = 1
+            counter = counter + 1
+            result.append(row)
+    return result
+
+# Ignoring the "nan" and "NaN" records
+# Creates a list
+def processSentimentsList(data):
+    result = []
+    for row in data:
+        if str(row) != "nan" and str(row) != "NaN":
+            if row == '- s' or row == '- m':
+                row = 0
+            if row == '+ s' or row == '+ m':
+                row = 1
+            result.append(row)
+    return result
+
+def mergeDictionaries(dict_1, dict_2):
+   dict_3 = {**dict_1, **dict_2}
+   for key, value in dict_3.items():
+       if key in dict_1 and key in dict_2:
+               dict_3[key] = [value , dict_1[key]]
+   return dict_3
+
+
+def deleteRecordsWithNeutralSentiment(dict):
+    
+
+    return dict
