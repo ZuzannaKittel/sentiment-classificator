@@ -26,7 +26,7 @@ from sklearn import metrics
 data = pd.read_csv('słownik_anotacji_emocjonalnej.csv')
 
 # Nice order of the data | insert into a table
-data = data.iloc[:7500,:]
+data = data.iloc[:750,:]
 print(data)
 
 # Extraction of the examples (column 7)
@@ -83,14 +83,16 @@ wordsInW2V = list(w2v.wv.key_to_index)
 print(wordsInW2V)
 """
 
-X_train, X_test, y_train, y_test = train_test_split(vectorized_examples, sentiments_list, test_size=0.3, random_state=123)
+X_train, X_test, y_train, y_test = train_test_split(vectorized_examples, sentiments_list, test_size=0.3) # random_state?
+
+
 classifier = BernoulliNB().fit(X_train, y_train)
 predicted = classifier.predict(X_test)
 print("BernoulliNB Accuracy: ", metrics.accuracy_score(y_test,predicted))
 print("BernoulliNB Precision: ", metrics.precision_score(y_test,predicted))
 print("BernoulliNB Recall: ", metrics.recall_score(y_test,predicted))
 print("BernoulliNB F1: ", metrics.f1_score(y_test,predicted))
-print("\n\n")
+print("\n")
 
 classifier = LogisticRegression(solver='liblinear').fit(X_train, y_train)
 predicted = classifier.predict(X_test)
@@ -98,4 +100,43 @@ print("LogisticRegression Accuracy: ", metrics.accuracy_score(y_test,predicted))
 print("LogisticRegression Precision: ", metrics.precision_score(y_test,predicted))
 print("LogisticRegression Recall: ", metrics.recall_score(y_test,predicted))
 print("LogisticRegression F1: ", metrics.f1_score(y_test,predicted))
-print("\n\n")
+print("\n")
+
+classifier = svm.SVC(kernel='linear').fit(X_train, y_train)
+predicted = classifier.predict(X_test)
+print("Support Vector Machines Accuracy: ", metrics.accuracy_score(y_test,predicted))
+print("Support Vector Machines Precision: ", metrics.precision_score(y_test,predicted))
+print("Support Vector Machines Recall: ", metrics.recall_score(y_test,predicted))
+print("Support Vector Machines F1: ", metrics.f1_score(y_test,predicted))
+print("\n")
+
+classifier = svm.SVC(kernel='sigmoid').fit(X_train, y_train)
+predicted = classifier.predict(X_test)
+print("Support Vector Machines Accuracy: ", metrics.accuracy_score(y_test,predicted))
+print("Support Vector Machines Precision: ", metrics.precision_score(y_test,predicted))
+print("Support Vector Machines Recall: ", metrics.recall_score(y_test,predicted))
+print("Support Vector Machines F1: ", metrics.f1_score(y_test,predicted))
+print("\n")
+
+# Looks for the k with the best accuracy
+def bestKNeighbors(limit = 11):
+    best_k = 1
+    best_accuracy = 0
+    for k in range(1,limit):
+        classifier = KNeighborsClassifier(k, weights='distance').fit(X_train, y_train)
+        predicted = classifier.predict(X_test)
+        #print(k)
+        #print("Kneighbors Accuracy: ", metrics.accuracy_score(y_test,predicted))
+        if (metrics.accuracy_score(y_test,predicted) > best_accuracy):
+            best_accuracy = metrics.accuracy_score(y_test,predicted)
+            best_k = k
+
+    classifier = KNeighborsClassifier(best_k, weights='distance').fit(X_train, y_train)
+    predicted = classifier.predict(X_test)
+    print("Kneighbors Accuracy: ", metrics.accuracy_score(y_test,predicted))
+    print("Kneighbors Precision: ", metrics.precision_score(y_test,predicted))
+    print("Kneighbors Recall: ", metrics.recall_score(y_test,predicted))
+    print("Kneighbors F1: ", metrics.f1_score(y_test,predicted))
+    print("\n")
+
+bestKNeighbors()
