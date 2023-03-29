@@ -2,31 +2,28 @@ import re
 import spacy
 
 from spacy.tokenizer import Tokenizer
+from nltk.tokenize import word_tokenize
+import nltk
+#nltk.download('punkt')
 
 from spacy.lang.pl import Polish
+from spacy.lang.en import English
 pl = spacy.load('pl_core_news_sm')
+nlp = English()
 
 # Process text
 def process_text(text):
 
-    # remove hyperlinks
-    text = re.sub(r'https?:\/\/.*[\r\n]*', '', str(text))
-
-    # remove hashtags
-    # only removing the hash # sign from the word
-    text = re.sub(r'#', '', str(text))
-
+    print (text)
+    
     # remove punctuation
     text = re.sub(r'[^\w\s]', '', str(text))
 
-    # remove "nan" (so records without examples)
-    # text = re.sub(r'nan', '', str(text))
-
-    # instantiate tokenizer class
-    tokenizer = Tokenizer(pl.vocab)
-
     # tokenize text
-    text_tokens = tokenizer(text)
+    text_tokens = word_tokenize(text)
+    print("text_tokens: ")
+    
+    print(text_tokens)
 
     # import the polish stopwords from spacy
     stopwords = pl.Defaults.stop_words 
@@ -39,15 +36,16 @@ def process_text(text):
 
     #print(text_clean)
 
-    texts_lem = ''
-
+    text_lem = ''
     doc = pl(str(text_clean))
+    #text_lem = ''.join(token.lemma_ for token in doc)
+    for token in doc:
+        text_lem += ''+token.lemma_  # append to the phrase
 
-    texts_lem = ' '.join(token.lemma_ for token in doc)
+    #print("text_lem: ")
+    #print(text_lem)
 
-    #print(texts_lem)
-
-    return texts_lem
+    return text_lem
 
 # Use process_text on the whole data, row by row
 # Ignoring the "nan" and "NaN" records
@@ -107,8 +105,3 @@ def mergeDictionaries(dict_1, dict_2):
                dict_3[key] = [value , dict_1[key]]
    return dict_3
 
-
-def deleteRecordsWithNeutralSentiment(dict):
-    
-
-    return dict
