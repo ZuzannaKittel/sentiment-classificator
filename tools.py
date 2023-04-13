@@ -14,16 +14,15 @@ nlp = English()
 # Process text
 def process_text(text):
 
-    print (text)
+    #print (text)
     
     # remove punctuation
     text = re.sub(r'[^\w\s]', '', str(text))
 
     # tokenize text
     text_tokens = word_tokenize(text)
-    print("text_tokens: ")
-    
-    print(text_tokens)
+    #print("text tokens: ")
+    #print(text_tokens)
 
     # import the polish stopwords from spacy
     stopwords = pl.Defaults.stop_words 
@@ -34,6 +33,7 @@ def process_text(text):
         if (word not in stopwords):  # remove stopwords
             text_clean.append(word)
 
+    #print("text without stopwords: ")
     #print(text_clean)
 
     text_lem = ''
@@ -42,7 +42,7 @@ def process_text(text):
     for token in doc:
         text_lem += ''+token.lemma_  # append to the phrase
 
-    #print("text_lem: ")
+    #print("lemmatized text: ")
     #print(text_lem)
 
     return text_lem
