@@ -2,6 +2,7 @@ import pandas as pd
 import tools
 import gensim
 import spacy
+import numpy
 
 pl = spacy.load('pl_core_news_sm')
 
@@ -66,21 +67,22 @@ for token in doc:
     print(token.text, token.lemma_, token.tag_)
 """
 #print(examples_list)
-# Initialise the TfidfVectorizer
-tfidf = TfidfVectorizer()
 
 # Vectorise the text examples
 def textRepresentation():
+    
     # TF-IDF representation
+    # Initialise the TfidfVectorizer
+    tfidf = TfidfVectorizer()
     vectorized_examples = tfidf.fit_transform(examples_list)
-    print(vectorized_examples)
-    print(vectorized_examples.shape)
+    #print(vectorized_examples)
+    #print(vectorized_examples.shape)
 
-    # Bag of Words representation
+    """# Bag of Words representation
     BoW = CountVectorizer()
     vectorized_examples = BoW.fit_transform(examples_list)
-    print(vectorized_examples)
-    print(vectorized_examples.shape)
+    #print(vectorized_examples)
+    #print(vectorized_examples.shape)"""
     
     return vectorized_examples
 
@@ -273,14 +275,19 @@ def crossValidaitionTraining(kFolds):
     
     # K-nearest Neighbors
     # Looks for the k with the best accuracy
-    def bestKNeighbors(limit = 30):
+    def bestKNeighbors(limit = 20):
         best_k = 1
         best_accuracy = 0
+        best_result = 0
         for k in range(1,limit):
             classifier = KNeighborsClassifier(k, weights='distance')
             results = cross_validate(classifier, vectorized_examples, sentiments_list, cv = kFolds, scoring = scoring, return_train_score=True)
-            if (results['test_accuracy'].mean() > best_accuracy):
+            result = (results['test_accuracy'].mean()+results['test_precision'].mean()+results['test_recall'].mean()+results['test_f1'].mean())/4
+            """if (results['test_accuracy'].mean() > best_accuracy):
                 best_accuracy = results['test_accuracy'].mean()
+                best_k = k"""
+            if (result > best_result):
+                best_result = (results['test_accuracy'].mean()+results['test_precision'].mean()+results['test_recall'].mean()+results['test_f1'].mean())/4
                 best_k = k
 
         classifier = KNeighborsClassifier(best_k, weights='distance')
@@ -295,5 +302,96 @@ def crossValidaitionTraining(kFolds):
 
     bestKNeighbors()
     
-basicTraining()
-crossValidaitionTraining(kFolds = 5)
+def crossValidaitionTrainingMaxScores(kFolds):
+    scoring = ['accuracy', 'precision', 'recall', 'f1']
+    
+    # Bernoulli
+    classifier = BernoulliNB()
+    results = cross_validate(classifier, vectorized_examples, sentiments_list, cv = kFolds, scoring = scoring, return_train_score=True)
+    print("Bernoulli Accuracy scores: ", results['train_accuracy'])
+    print("Bernoulli Mean Training Accuracy: ", results['train_accuracy'].max())
+    print("Bernoulli Mean Accuracy: ", results['test_accuracy'].max())
+    print("Bernoulli Mean Precision: ", results['test_precision'].max())
+    print("Bernoulli Mean Recall: ", results['test_recall'].max())
+    print("Bernoulli Mean F1: ", results['test_f1'].max())
+    print("\n")
+    
+    # Logistic Regression Liblinear
+    classifier = LogisticRegression(solver='liblinear')
+    results = cross_validate(classifier, vectorized_examples, sentiments_list, cv = kFolds, scoring = scoring, return_train_score=True)
+    print("Logistic Regression liblinear Accuracy scores: ", results['train_accuracy'])
+    print("Logistic Regression liblinear Mean Training Accuracy: ", results['train_accuracy'].max())
+    print("Logistic Regression liblinear Mean Accuracy: ", results['test_accuracy'].max())
+    print("Logistic Regression liblinear Mean Precision: ", results['test_precision'].max())
+    print("Logistic Regression liblinear Mean Recall: ", results['test_recall'].max())
+    print("Logistic Regression liblinear Mean F1: ", results['test_f1'].max())
+    print("\n")
+    
+    # Logistic Regression Sigmoid
+    classifier = LogisticRegression(solver='sag')
+    results = cross_validate(classifier, vectorized_examples, sentiments_list, cv = kFolds, scoring = scoring, return_train_score=True)
+    print("Logistic Regression sag Accuracy scores: ", results['train_accuracy'])
+    print("Logistic Regression sag Mean Training Accuracy: ", results['train_accuracy'].max())
+    print("Logistic Regression sag Mean Accuracy: ", results['test_accuracy'].max())
+    print("Logistic Regression sag Mean Precision: ", results['test_precision'].max())
+    print("Logistic Regression sag Mean Recall: ", results['test_recall'].max())
+    print("Logistic Regression sag Mean F1: ", results['test_f1'].max())
+    print("\n")
+    
+    # Support Vector Machines Linear
+    classifier = svm.SVC(kernel='linear')
+    results = cross_validate(classifier, vectorized_examples, sentiments_list, cv = kFolds, scoring = scoring, return_train_score=True)
+    print("SVM linear Accuracy scores: ", results['train_accuracy'])
+    print("SVM linear Mean Training Accuracy: ", results['train_accuracy'].max())
+    print("SVM linear Mean Accuracy: ", results['test_accuracy'].max())
+    print("SVM linear Mean Precision: ", results['test_precision'].max())
+    print("SVM linear Mean Recall: ", results['test_recall'].max())
+    print("SVM linear Mean F1: ", results['test_f1'].max())
+    print("\n")
+    
+    # Support Vector Machines Sigmoid
+    classifier = svm.SVC(kernel='sigmoid')
+    results = cross_validate(classifier, vectorized_examples, sentiments_list, cv = kFolds, scoring = scoring, return_train_score=True)
+    print("SVM sigmoid Accuracy scores: ", results['train_accuracy'])
+    print("SVM sigmoid Mean Training Accuracy: ", results['train_accuracy'].max())
+    print("SVM sigmoid Mean Accuracy: ", results['test_accuracy'].max())
+    print("SVM sigmoid Mean Precision: ", results['test_precision'].max())
+    print("SVM sigmoid Mean Recall: ", results['test_recall'].max())
+    print("SVM sigmoid Mean F1: ", results['test_f1'].max())
+    print("\n")
+    
+    # K-nearest Neighbors
+    # Looks for the k with the best accuracy
+    def bestKNeighbors(limit = 20):
+        best_k = 1
+        best_accuracy = 0
+        best_result = 0
+        for k in range(1,limit):
+            classifier = KNeighborsClassifier(k, weights='distance')
+            results = cross_validate(classifier, vectorized_examples, sentiments_list, cv = kFolds, scoring = scoring, return_train_score=True)
+            result = (results['test_accuracy'].max()+results['test_precision'].max()+results['test_recall'].max()+results['test_f1'].max())/4
+            """if (results['test_accuracy'].mean() > best_accuracy):
+                best_accuracy = results['test_accuracy'].mean()
+                best_k = k"""
+            if (result > best_result):
+                best_result = (results['test_accuracy'].max()+results['test_precision'].max()+results['test_recall'].max()+results['test_f1'].max())/4
+                best_k = k
+
+        classifier = KNeighborsClassifier(best_k, weights='distance')
+        results = cross_validate(classifier, vectorized_examples, sentiments_list, cv = kFolds, scoring = scoring, return_train_score=True)
+        print("K-nearest Neighbors Accuracy scores: ", results['train_accuracy'])
+        print("K-nearest Neighbors Mean Training Accuracy: ", results['train_accuracy'].max())
+        print("K-nearest Neighbors Mean Accuracy: ", results['test_accuracy'].max())
+        print("K-nearest Neighbors Mean Precision: ", results['test_precision'].max())
+        print("K-nearest Neighbors Mean Recall: ", results['test_recall'].max())
+        print("K-nearest Neighbors Mean F1: ", results['test_f1'].max())
+        print("\n")
+
+    bestKNeighbors()
+    
+#basicTraining()
+#crossValidaitionTraining(kFolds = 3)
+#crossValidaitionTraining(kFolds = 5)
+#crossValidaitionTraining(kFolds = 10)
+
+crossValidaitionTrainingMaxScores(kFolds = 3)
