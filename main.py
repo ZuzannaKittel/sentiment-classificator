@@ -35,7 +35,7 @@ from sklearn import metrics
 data = pd.read_csv('słownik_anotacji_emocjonalnej.csv')
 
 # Nice order of the data | insert into a table
-data = data.iloc[:100000,:]
+data = data.iloc[:1000,:]
 print(data)
 
 # Extraction of the examples (column 7)
@@ -71,18 +71,18 @@ for token in doc:
 # Vectorise the text examples
 def textRepresentation():
     
-    # TF-IDF representation
+    """# TF-IDF representation
     # Initialise the TfidfVectorizer
     tfidf = TfidfVectorizer()
     vectorized_examples = tfidf.fit_transform(examples_list)
     #print(vectorized_examples)
-    #print(vectorized_examples.shape)
+    #print(vectorized_examples.shape)"""
 
-    """# Bag of Words representation
+    # Bag of Words representation
     BoW = CountVectorizer()
     vectorized_examples = BoW.fit_transform(examples_list)
     #print(vectorized_examples)
-    #print(vectorized_examples.shape)"""
+    #print(vectorized_examples.shape)
     
     return vectorized_examples
 
@@ -233,16 +233,23 @@ def basicTraining():
 
     # K-nearest Neighbors
     # Looks for the k with the best accuracy
-    def bestKNeighbors(limit = 30):
+    def bestKNeighbors(limit = 20):
         best_k = 1
+        best_result = 0
         best_accuracy = 0
+        best_precision = 0
+        best_recall = 0
+        best_f1 = 0
         for k in range(1,limit):
             classifier = KNeighborsClassifier(k, weights='distance').fit(x_train, y_train)
             predicted = classifier.predict(x_test)
-            #print(k)
-            #print("Kneighbors Accuracy: ", metrics.accuracy_score(y_test,predicted))
-            if (metrics.accuracy_score(y_test,predicted) > best_accuracy):
-                best_accuracy = metrics.accuracy_score(y_test,predicted)
+            results_accuracy = metrics.accuracy_score(y_test,predicted)
+            results_precision = metrics.precision_score(y_test,predicted)
+            results_recall = metrics.recall_score(y_test,predicted)
+            results_f1 = metrics.f1_score(y_test,predicted)
+            result = (results_accuracy.max()+results_precision.max()+results_recall.max()+results_f1.max())/4
+            if (result > best_result):
+                best_result = (results_accuracy.max()+results_precision.max()+results_recall.max()+results_f1.max())/4
                 best_k = k
 
         classifier = KNeighborsClassifier(best_k, weights='distance').fit(x_train, y_train)
@@ -263,7 +270,7 @@ def basicTraining():
 
     bestKNeighbors()
     
-def crossValidaitionTraining(kFolds):
+def crossValidationTraining(kFolds):
     scoring = ['accuracy', 'precision', 'recall', 'f1']
     
     # Bernoulli
@@ -506,9 +513,11 @@ def crossValidaitionTrainingTrainingSetMetrics(kFolds):
 
     bestKNeighbors()
 
-basicTraining()
+#basicTraining()
 #crossValidaitionTraining(kFolds = 3)
 #crossValidaitionTraining(kFolds = 5)
-#crossValidaitionTraining(kFolds = 10)
+#crossValidationTraining(kFolds = 10)
 
 #crossValidaitionTrainingMaxScores(kFolds = 10)
+
+crossValidaitionTrainingTrainingSetMetrics(10)
